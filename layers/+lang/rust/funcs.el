@@ -45,8 +45,8 @@
   (if (configuration-layer/layer-used-p 'lsp)
       (progn
         (lsp)
-        (spacemacs/declare-prefix-for-mode 'rust-mode "ms" "switch")
-        (spacemacs/set-leader-keys-for-major-mode 'rust-mode
+        (spacemacs/declare-prefix-for-mode 'rustic-mode "ms" "switch")
+        (spacemacs/set-leader-keys-for-major-mode 'rustic-mode
           "ss" 'lsp-rust-switch-server))
     (spacemacs//lsp-layer-not-installed-message)))
 
@@ -66,7 +66,7 @@
   "Setup racer auto-completion."
   (spacemacs|add-company-backends
     :backends company-capf
-    :modes rust-mode
+    :modes rustic-mode
     :variables company-tooltip-align-annotations t))
 
 (defun spacemacs/racer-describe ()

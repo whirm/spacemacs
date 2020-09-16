@@ -21,7 +21,9 @@
     helm-gtags
     ron-mode
     racer
-    rust-mode
+    ;; cargo requires rust-mode but rustic needs to be loaded after rust-mode
+    ;; so it can set the correct auto-mode-alist entry.
+    (rustic :requires cargo)
     smartparens
     toml-mode))
 
@@ -30,8 +32,8 @@
     :defer t
     :init
     (progn
-      (spacemacs/declare-prefix-for-mode 'rust-mode "mc" "cargo")
-      (spacemacs/set-leader-keys-for-major-mode 'rust-mode
+      (spacemacs/declare-prefix-for-mode 'rustic-mode "mc" "cargo")
+      (spacemacs/set-leader-keys-for-major-mode 'rustic-mode
         "c." 'cargo-process-repeat
         "ca" 'cargo-process-add
         "cA" 'cargo-process-audit
@@ -61,15 +63,15 @@
   (spacemacs//rust-setup-company))
 
 (defun rust/post-init-counsel-gtags ()
-  (spacemacs/counsel-gtags-define-keys-for-mode 'rust-mode))
+  (spacemacs/counsel-gtags-define-keys-for-mode 'rustic-mode))
 
 (defun rust/pre-init-dap-mode ()
   (pcase (spacemacs//rust-backend)
-    (`lsp (add-to-list 'spacemacs--dap-supported-modes 'rust-mode)))
-  (add-hook 'rust-mode-local-vars-hook #'spacemacs//rust-setup-dap))
+    (`lsp (add-to-list 'spacemacs--dap-supported-modes 'rustic-mode)))
+  (add-hook 'rustic-mode-local-vars-hook #'spacemacs//rust-setup-dap))
 
 (defun rust/post-init-flycheck ()
-  (spacemacs/enable-flycheck 'rust-mode))
+  (spacemacs/enable-flycheck 'rustic-mode))
 
 (defun rust/init-flycheck-rust ()
   (use-package flycheck-rust
@@ -77,10 +79,10 @@
     :init (add-hook 'flycheck-mode-hook #'flycheck-rust-setup)))
 
 (defun rust/post-init-ggtags ()
-  (add-hook 'rust-mode-local-vars-hook #'spacemacs/ggtags-mode-enable))
+  (add-hook 'rustic-mode-local-vars-hook #'spacemacs/ggtags-mode-enable))
 
 (defun rust/post-init-helm-gtags ()
-  (spacemacs/helm-gtags-define-keys-for-mode 'rust-mode))
+  (spacemacs/helm-gtags-define-keys-for-mode 'rustic-mode))
 
 (defun rust/init-racer ()
   (use-package racer
@@ -88,32 +90,46 @@
     :commands racer-mode
     :config
     (progn
-      (spacemacs/add-to-hook 'rust-mode-hook '(racer-mode))
+      (spacemacs/add-to-hook 'rustic-mode-hook '(racer-mode))
       (spacemacs/add-to-hook 'racer-mode-hook '(eldoc-mode))
-      (add-to-list 'spacemacs-jump-handlers-rust-mode 'racer-find-definition)
-      (spacemacs/set-leader-keys-for-major-mode 'rust-mode
+      (add-to-list 'spacemacs-jump-handlers-rustic-mode 'racer-find-definition)
+      (spacemacs/set-leader-keys-for-major-mode 'rustic-mode
         "hh" 'spacemacs/racer-describe)
       (spacemacs|hide-lighter racer-mode)
       (evilified-state-evilify-map racer-help-mode-map
         :mode racer-help-mode))))
 
-(defun rust/init-rust-mode ()
-  (use-package rust-mode
+(defun rust/init-rustic ()
+  (use-package rustic
     :defer t
     :init
     (progn
-      (spacemacs/add-to-hook 'rust-mode-hook '(spacemacs//rust-setup-backend))
-      (spacemacs/declare-prefix-for-mode 'rust-mode "mg" "goto")
-      (spacemacs/declare-prefix-for-mode 'rust-mode "mh" "help")
-      (spacemacs/declare-prefix-for-mode 'rust-mode "m=" "format")
-      (spacemacs/set-leader-keys-for-major-mode 'rust-mode
-        "==" 'rust-format-buffer
-        "q" 'spacemacs/rust-quick-run))))
+      (spacemacs/add-to-hook 'rustic-mode-hook '(spacemacs//rust-setup-backend))
+
+      (spacemacs/declare-prefix-for-mode 'rustic-mode "mg" "goto")
+      (spacemacs/declare-prefix-for-mode 'rustic-mode "mh" "help")
+      (spacemacs/declare-prefix-for-mode 'rustic-mode "mc" "cargo")
+      (spacemacs/declare-prefix-for-mode 'rustic-mode "m=" "format")
+
+      (spacemacs/set-leader-keys-for-major-mode 'rustic-mode
+        "=j" 'lsp-rust-analyzer-join-lines
+        "==" 'lsp-format-buffer
+        "Ti" 'lsp-rust-analyzer-inlay-hints-mode
+        "bD" 'lsp-rust-analyzer-status
+        "bS" 'lsp-rust-analyzer-switch-server
+        "gp" 'lsp-rust-analyzer-find-parent-module
+        "hm" 'lsp-rust-analyzer-expand-macro
+        "hs" 'lsp-rust-analyzer-syntax-tree
+        "v" 'lsp-extend-selection
+
+        "," 'lsp-rust-analyzer-rerun
+        "."  'lsp-rust-analyzer-run
+        ))))
 
 (defun rust/post-init-smartparens ()
   (with-eval-after-load 'smartparens
     ;; Don't pair lifetime specifiers
-    (sp-local-pair 'rust-mode "'" nil :actions nil)))
+    (sp-local-pair 'rustic-mode "'" nil :actions nil)))
 
 (defun rust/init-toml-mode ()
   (use-package toml-mode
